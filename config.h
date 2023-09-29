@@ -1,4 +1,4 @@
-/* See LICENSE file for copyright and license details. */
+#include <X11/XF86keysym.h>
 
 /* appearance */
 static const unsigned int borderpx  = 3;        /* border pixel of windows */
@@ -22,7 +22,7 @@ static char *colors[][3] = {
 };
 
 /* tagging */
-static const char *tags[] = { "", "2", "3", "4", "5", "6", "7", "8", "9" };
+static const char *tags[] = { "一", "二", "三", "四", "五", "六", "七", "八", "九" };
 
 static const Rule rules[] = {
 	/* xprop(1):
@@ -30,8 +30,9 @@ static const Rule rules[] = {
 	 *	WM_NAME(STRING) = title
 	 */
 	/* class                instance  title           tags mask  isfloating  isterminal  noswallow  monitor */
-	{ "firefox",   		NULL,     NULL,           1 << 8,    0,          0,          -1,        -1 },
+	{ "firefox",   		   NULL,     NULL,           1 << 8,    0,          0,          -1,        -1 },
 	{ "St",                 NULL,     NULL,           0,         0,          1,           0,        -1 },
+	{ "Alacritty",                 NULL,     NULL,           0,         0,          1,           0,        -1 },
 	{ NULL,                 NULL,     "Event Tester", 0,         0,          0,           1,        -1 }, /* xev */
 };
 
@@ -62,25 +63,52 @@ static const Layout layouts[] = {
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
 static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont};
 static const char *termcmd[]  = { "st", NULL };
+static const char *screensht[] = { "flameshot", "gui", NULL };
+static const char *lock[]      = { "slock", NULL };
+/*static const char *termcmd[]  = { "alacritty", NULL };*/
+
+static const char *vol_up[]    = { "pactl", "set-sink-volume", "@DEFAULT_SINK@", "+2%", NULL };
+static const char *vol_down[]  = { "pactl", "set-sink-volume", "@DEFAULT_SINK@", "-2%", NULL };
+static const char *vol_mute[]  = { "pactl", "set-sink-mute", "@DEFAULT_SINK@", "toggle", NULL };
+
+static const char *bright_up[] = { "light", "-A", "5", NULL};
+static const char *bright_dn[] = { "light", "-U", "5", NULL};
+
+static const char *play_tggl[] = { "playerctl", "play-pause", NULL };
+static const char *play_next[] = { "playerctl", "next", NULL };
+static const char *play_prev[] = { "playerctl", "previous", NULL };
 
 static Key keys[] = {
 	/* modifier                     key        function        argument */
+	// laptop audio control
+	{ 0,                            XF86XK_AudioRaiseVolume,  spawn,          {.v = vol_up } },
+	{ 0,                            XF86XK_AudioLowerVolume,  spawn,          {.v = vol_down } },
+	{ 0,                            XF86XK_AudioMute,         spawn,          {.v = vol_mute } },
+	{ 0,                            XF86XK_AudioPlay,         spawn,          {.v = play_tggl } },
+	{ 0,                            XF86XK_AudioNext,         spawn,          {.v = play_next } },
+	{ 0,                            XF86XK_AudioPrev,         spawn,          {.v = play_prev } },
+
+	// laptop display brightness
+	{ 0,                            XF86XK_MonBrightnessUp,   spawn,          {.v = bright_up } },
+	{ 0,                            XF86XK_MonBrightnessDown, spawn,          {.v = bright_dn } },
+
+
 	{ MODKEY,                       XK_l,      setmfact,       {.f = +0.05} },
 	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
 	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
 	{ MODKEY,                       XK_h,      setmfact,       {.f = -0.05} },
 	{ MODKEY,                       XK_g,      togglebar,      {0} },
-	{ MODKEY,                       XK_f,	   zoom,           {0} },
+	{ MODKEY,                       XK_f,	    zoom,           {0} },
 	{ MODKEY,                       XK_d,      incnmaster,     {.i = -1 } },
 	{ MODKEY,                       XK_s,      incnmaster,     {.i = +1 } },
-	{ MODKEY,		        XK_q,      killclient,     {0} },
+	{ MODKEY,		                 XK_q,      killclient,     {0} },
 	{ MODKEY,                       XK_w,      setlayout,      {.v = &layouts[0]} },
 	{ MODKEY,                       XK_e,      setlayout,      {.v = &layouts[1]} },
 	{ MODKEY,                       XK_r,      setlayout,      {.v = &layouts[2]} },
-	{ MODKEY|ShiftMask,             XK_r,  	   togglefloating, {0} },
-	{ MODKEY,                       XK_t,  	   setlayout,      {0} },
+	{ MODKEY|ShiftMask,             XK_r,  	 togglefloating, {0} },
+	{ MODKEY,                       XK_t,      setlayout,      {0} },
 	{ MODKEY,                       XK_space,  spawn,          {.v = dmenucmd } },
-	{ MODKEY,			XK_Return, spawn,          {.v = termcmd } },
+	{ MODKEY,		                 XK_Return, spawn,          {.v = termcmd } },
 	{ MODKEY,                       XK_Tab,    view,           {0} },
 	{ MODKEY,                       XK_0,      view,           {.ui = ~0 } },
 	{ MODKEY|ShiftMask,             XK_0,      tag,            {.ui = ~0 } },
@@ -88,9 +116,9 @@ static Key keys[] = {
 	{ MODKEY,                       XK_period, focusmon,       {.i = +1 } },
 	{ MODKEY|ShiftMask,             XK_comma,  tagmon,         {.i = -1 } },
 	{ MODKEY|ShiftMask,             XK_period, tagmon,         {.i = +1 } },
-	{ MODKEY,			XK_minus,  setgaps,	   {.i = -1 } },
-	{ MODKEY,			XK_equal,  setgaps,	   {.i = +1 } },
-	{ MODKEY|ShiftMask,		XK_equal,  setgaps,	   {.i =  0 } },
+	{ MODKEY,			              XK_minus,  setgaps,	   {.i = -1 } },
+	{ MODKEY,		                 XK_equal,  setgaps,	   {.i = +1 } },
+	{ MODKEY|ShiftMask,		        XK_equal,  setgaps,	   {.i =  0 } },
 	{ MODKEY,                       XK_F5,     xrdb,           {.v = NULL } },
 	TAGKEYS(                        XK_1,                      0)
 	TAGKEYS(                        XK_2,                      1)
